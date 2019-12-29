@@ -3,6 +3,8 @@ import json
 from io import BytesIO
 import numpy as np
 import requests
+import tensorflow_datasets as tfds
+import tensorflow as tf
 from flask import Flask, request, jsonify
 
 
@@ -13,7 +15,8 @@ app = Flask(__name__)
 
 # Uncomment this line if you are making a Cross domain request
 # CORS(app)
-
+info = tfds.load('imdb_reviews/subwords8k', with_info=True, as_supervised=True)
+encoder = info.features['text'].encoder
 # Testing URL
 @app.route('/hello/', methods=['GET', 'POST'])
 def hello_world():
@@ -25,10 +28,12 @@ def classifier():
 
     txt = request.json
     sentence = txt["comment"]
-
+    encoded_sample_pred_text = encoder.encode(sentence)
+    encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
+    sentence = tf.expand_dims(encoded_sample_pred_text, 0)
     # Creating payload for TensorFlow serving request
     payload = {
-        "instances": [{'input': sentence.toString()}]
+        "instances": [{'input': sentence.tolist()}]
     }
 
     # Making POST request
@@ -39,3 +44,8 @@ def classifier():
 
     # Returning JSON response to the frontend
     return jsonify(pred['predictions'])
+
+def pad_to_size(vec, size):
+  zeros = [0] * (size - len(vec))
+  vec.extend(zeros)
+  return vec
