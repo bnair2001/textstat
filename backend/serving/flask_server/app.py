@@ -38,9 +38,12 @@ def classifier():
     print("encode 2")
     sentence = tf.expand_dims(encoded_sample_pred_text, 0)
     print("before payload")
+
+    sentence = base64.b64encode(bytes(sentence, 'utf-8'))
+
     # Creating payload for TensorFlow serving request
     payload = {
-        "instances": [{'input': sentence.tolist()}]
+        "instances": [{'input': sentence}]
     }
     print("after payload")
     # Making POST request
