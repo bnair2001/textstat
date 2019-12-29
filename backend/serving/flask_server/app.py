@@ -32,12 +32,12 @@ def classifier():
     #txt = json.loads(s1)
     sentence = txt["comment"]
     print(sentence)
-    encoded_sample_pred_text = encoder.encode(sentence)
+    """ encoded_sample_pred_text = encoder.encode(sentence)
     print("encode 1")
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
     print("encode 2")
     sentence = tf.expand_dims(encoded_sample_pred_text, 0)
-    print("before payload")
+    print("before payload") """
 
     sentence = base64.b64encode(bytes(sentence, 'utf-8'))
 
