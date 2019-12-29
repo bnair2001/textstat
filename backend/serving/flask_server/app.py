@@ -40,7 +40,7 @@ def classifier():
     print("before payload")
     # Creating payload for TensorFlow serving request
     payload = {
-        "instances": [{'input': sentence}]
+        "instances": [{'input': sentence.tolist()}]
     }
     print("after payload")
     # Making POST request
