@@ -18,6 +18,7 @@ app = Flask(__name__)
 # CORS(app)
 dataset, info = tfds.load('imdb_reviews/subwords8k', with_info=True, as_supervised=True)
 encoder = info.features['text'].encoder
+model = loadModel('/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json', '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5')
 # Testing URL
 @app.route('/hello/', methods=['GET', 'POST'])
 def hello_world():
@@ -38,8 +39,7 @@ def classifier():
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
     print("encode 2")
     sentence = tf.expand_dims(encoded_sample_pred_text, 0)
-    model = loadModel('model.json', 'model.h5')
-
+    pred = sample_predict(sentence, pad=True)
     # Creating payload for TensorFlow serving request
     """ payload = {
         "instances": [{'input': sentence}]
@@ -52,7 +52,7 @@ def classifier():
     pred = json.loads(r.content.decode('utf-8')) """
     print(pred)
     # Returning JSON response to the frontend
-    return jsonify(pred['predictions'])
+    return jsonify(pred)
 
 def pad_to_size(vec, size):
   zeros = [0] * (size - len(vec))
@@ -71,3 +71,13 @@ def loadModel(jsonStr, weightStr):
                         loss='categorical_crossentropy',
                         metrics=['accuracy'])
     return serve_model
+
+def sample_predict(sample_pred_text, pad):
+  encoded_sample_pred_text = encoder.encode(sample_pred_text)
+
+  if pad:
+    encoded_sample_pred_text = pad_to_size(encoded_sample_pred_text, 64)
+  encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
+  predictions = model.predict(tf.expand_dims(encoded_sample_pred_text, 0))
+
+  return (predictions)
