@@ -28,7 +28,8 @@ def hello_world():
 def classifier():
 
     txt = request.json
-    txt = json.loads(txt)
+    s1 = json.dumps(txt)
+    txt = json.loads(s1)
     sentence = txt["comment"]
     encoded_sample_pred_text = encoder.encode(sentence)
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
