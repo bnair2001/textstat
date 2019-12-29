@@ -26,10 +26,10 @@ def hello_world():
 
 @app.route('/sentiment/predict/', methods=['POST'])
 def classifier():
-
     txt = request.json
-    s1 = json.dumps(txt)
-    txt = json.loads(s1)
+    print(request.json)
+    #s1 = json.dumps(txt)
+    #txt = json.loads(s1)
     sentence = txt["comment"]
     encoded_sample_pred_text = encoder.encode(sentence)
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
