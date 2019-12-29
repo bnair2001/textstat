@@ -45,11 +45,11 @@ def classifier():
     sentence = txt["comment"]
     print(sentence)
     #sentence = base64.b64encode(bytes(sentence, 'utf-8'))
-    encoded_sample_pred_text = encoder.encode(sentence)
+    """ encoded_sample_pred_text = encoder.encode(sentence)
     print("encode 1")
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
     print("encode 2")
-    sentence = tf.expand_dims(encoded_sample_pred_text, 0)
+    sentence = tf.expand_dims(encoded_sample_pred_text, 0) """
     pred = sample_predict(sentence, pad=True)
     # Creating payload for TensorFlow serving request
     """ payload = {
