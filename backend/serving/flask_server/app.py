@@ -33,13 +33,16 @@ def classifier():
     sentence = txt["comment"]
     print(sentence)
     encoded_sample_pred_text = encoder.encode(sentence)
+    print("encode 1")
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
+    print("encode 2")
     sentence = tf.expand_dims(encoded_sample_pred_text, 0)
+    print("before payload")
     # Creating payload for TensorFlow serving request
     payload = {
         "instances": [{'input': sentence}]
     }
-
+    print("after payload")
     # Making POST request
     r = requests.post('http://localhost:9000/v1/models/classifier:predict', json=payload)
 
