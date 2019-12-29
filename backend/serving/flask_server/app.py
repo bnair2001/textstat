@@ -89,6 +89,6 @@ def sample_predict(sample_pred_text, pad):
   if pad:
     encoded_sample_pred_text = pad_to_size(encoded_sample_pred_text, 64)
   encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
-  predictions = model.predict(tf.expand_dims(encoded_sample_pred_text, 0))
+  predictions = model.predict(tf.expand_dims(encoded_sample_pred_text, 0), steps=None)
 
   return (predictions)
