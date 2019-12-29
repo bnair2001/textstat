@@ -28,13 +28,14 @@ def hello_world():
 def classifier():
 
     txt = request.json
+    txt = json.loads(txt)
     sentence = txt["comment"]
     encoded_sample_pred_text = encoder.encode(sentence)
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
     sentence = tf.expand_dims(encoded_sample_pred_text, 0)
     # Creating payload for TensorFlow serving request
     payload = {
-        "instances": [{'input': sentence.tolist()}]
+        "instances": [{'input': sentence}]
     }
 
     # Making POST request
