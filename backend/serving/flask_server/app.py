@@ -18,9 +18,20 @@ app = Flask(__name__)
 # CORS(app)
 dataset, info = tfds.load('imdb_reviews/subwords8k', with_info=True, as_supervised=True)
 encoder = info.features['text'].encoder
-model = loadModel('/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json', '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5')
+#model = loadModel('/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json', '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5')
+jsonStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json'
+weightStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5'
+json_file = open(jsonStr, 'r')
+loaded_nnet = json_file.read()
+json_file.close()
+
+serve_model = tf.keras.models.model_from_json(loaded_nnet)
+serve_model.load_weights(weightStr)
+
+serve_model.compile(optimizer=tf.keras.optimizers.Adam(1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
+model = serve_model
 # Testing URL
-@app.route('/hello/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def hello_world():
     return 'Hello, World!'
 
