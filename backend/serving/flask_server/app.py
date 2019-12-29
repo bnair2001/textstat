@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 # Uncomment this line if you are making a Cross domain request
 # CORS(app)
-info = tfds.load('imdb_reviews/subwords8k', with_info=True, as_supervised=True)
+dataset, info = tfds.load('imdb_reviews/subwords8k', with_info=True, as_supervised=True)
 encoder = info.features['text'].encoder
 # Testing URL
 @app.route('/hello/', methods=['GET', 'POST'])
