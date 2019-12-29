@@ -45,10 +45,10 @@ def classifier():
     print("after payload")
     # Making POST request
     r = requests.post('http://localhost:9000/v1/models/classifier:predict', json=payload)
-
+    print(r)
     # Decoding results from TensorFlow Serving server
     pred = json.loads(r.content.decode('utf-8'))
-
+    print(pred)
     # Returning JSON response to the frontend
     return jsonify(pred['predictions'])
 
