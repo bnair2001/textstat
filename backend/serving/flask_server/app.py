@@ -32,16 +32,16 @@ def classifier():
     #txt = json.loads(s1)
     sentence = txt["comment"]
     print(sentence)
-    sentence = base64.b64encode(bytes(sentence, 'utf-8'))
+    #sentence = base64.b64encode(bytes(sentence, 'utf-8'))
     encoded_sample_pred_text = encoder.encode(sentence)
     print("encode 1")
     encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
     print("encode 2")
     sentence = tf.expand_dims(encoded_sample_pred_text, 0)
-    print("before payload") 
+    model = loadModel('model.json', 'model.h5')
 
     # Creating payload for TensorFlow serving request
-    payload = {
+    """ payload = {
         "instances": [{'input': sentence}]
     }
     print("after payload")
@@ -49,7 +49,7 @@ def classifier():
     r = requests.post('http://localhost:9000/v1/models/classifier:predict', json=payload)
     print(r)
     # Decoding results from TensorFlow Serving server
-    pred = json.loads(r.content.decode('utf-8'))
+    pred = json.loads(r.content.decode('utf-8')) """
     print(pred)
     # Returning JSON response to the frontend
     return jsonify(pred['predictions'])
@@ -58,3 +58,16 @@ def pad_to_size(vec, size):
   zeros = [0] * (size - len(vec))
   vec.extend(zeros)
   return vec
+
+def loadModel(jsonStr, weightStr):
+    json_file = open(jsonStr, 'r')
+    loaded_nnet = json_file.read()
+    json_file.close()
+
+    serve_model = tf.keras.models.model_from_json(loaded_nnet)
+    serve_model.load_weights(weightStr)
+
+    serve_model.compile(optimizer=tf.keras.optimizers.Adam(1e-4),
+                        loss='categorical_crossentropy',
+                        metrics=['accuracy'])
+    return serve_model
