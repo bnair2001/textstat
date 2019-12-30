@@ -109,6 +109,9 @@ def vid():
     nos = req["nos"]
     thisdict = {
     }
+    findict = {
+    }
+    count = 0
     #video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
     #comments = get_video_comments(service, part='snippet', videoId='IcJhmhA8tHE', textFormat='plainText', maxResults = 100)
     with closing(Chrome(chrome_options=chrome_options)) as driver:
@@ -121,9 +124,10 @@ def vid():
             time.sleep(3)
 
         for comment in wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#comment #content-text"))):
-            print(comment.text)
+            #print(comment.text)
             com = comment.text
-            com = clean("some input",
+            count = count + 1
+            com = clean(comment.text,
                         fix_unicode=True,               # fix various unicode errors
                         to_ascii=True,                  # transliterate to closest ASCII representation
                         lower=True,                     # lowercase text
@@ -147,10 +151,20 @@ def vid():
             senti = sample_predict(com, pad=True)
             senti = senti.tolist()
             senti = senti[0][0]
-            if senti < 0.5:
+            if senti < 0.5 and senti > 0.001:
               sentivals.append(senti)
-
-    return 'hey it works'
+            thisdict[senti] = com
+    positive = count - len(sentivals)            
+    negative = len(sentivals)
+    sentivals.sort()
+    for x in sentivals:
+      findict[thisdict[x]] = x
+    print(abs(positive/count)*100)
+    print(abs(negative/count)*100)
+    findict["positive"] = abs(positive/count)*100
+    findict["negative"] = abs(negative/count)*100 
+    print(findict)
+    return findict
 
 
 def pad_to_size(vec, size):
