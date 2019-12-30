@@ -118,6 +118,7 @@ def vid():
     sentivals = []
     count = 0
     totalsentiment = 0
+    positive = 0
     # video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
     # comments = get_video_comments(service, part='snippet', videoId='IcJhmhA8tHE', textFormat='plainText', maxResults = 100)
     with closing(Chrome(chrome_options=chrome_options)) as driver:
@@ -158,21 +159,24 @@ def vid():
             senti = sample_predict(com, pad=True)
             senti = senti.tolist()
             senti = senti[0][0]
-            positive = 0
-            totalsentiment = totalsentiment + senti
             """ if senti < 0.8 or pol != 0 and pol > 0:
                count = count + 1
                positive = positive + 1
                sentivals.append(senti) """
-            if senti < 0.2 or pol != 0 and pol < 0:
+            if pol != 0 and pol < 0:
               lessthanpointtwo[senti] = com
               count = count + 1
-            if senti > 0.8 or pol != 0 and pol > 0:
+              totalsentiment = totalsentiment + senti
+              #positive = positive - 1
+            elif pol != 0 and pol > 0:
               morethanpointeight[senti] = com
               count = count + 1
               positive = positive + 1
+              totalsentiment = totalsentiment + senti
+            else:
+              abcdef = 0
 
-    positive = count - len(sentivals)            
+    #positive = count - positive           
     negative = len(sentivals)
     sentivals.sort()
     """ for x in sentivals:
