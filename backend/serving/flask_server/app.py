@@ -95,7 +95,9 @@ def classifier():
 @app.route('/video/predict/', methods=['POST'])
 def vid():
     req = request.json
-
+    #video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
+    comments = get_video_comments(service, part='snippet', videoId='kMtN9KJHn5Y', textFormat='plainText', maxResults = 1)
+    print(comments)
     return 'hey it works'
 
 
@@ -160,3 +162,21 @@ def get_comment_count_threads(youtube, video_id, comments_count=[], token=""):
         return get_comment_count_threads(youtube, video_id, comments_count, results["nextPageToken"])
     else:
         return comments_count
+
+def get_video_comments(service, **kwargs):
+    comments = []
+    results = service.commentThreads().list(**kwargs).execute()
+
+    while results:
+        for item in results['items']:
+            comment = item['snippet']['topLevelComment']['snippet']['textDisplay']
+            comments.append(comment)
+
+        # Check if another page exists
+        if 'nextPageToken' in results:
+            kwargs['pageToken'] = results['nextPageToken']
+            results = service.commentThreads().list(**kwargs).execute()
+        else:
+            break
+
+    return comments
