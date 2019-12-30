@@ -23,6 +23,7 @@ from selenium.webdriver.common.keys import Keys
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
+from textblob import TextBlob
 
 # from flask_cors import CORS
 
@@ -31,11 +32,11 @@ app = Flask(__name__)
 
 # Uncomment this line if you are making a Cross domain request
 # CORS(app)
-sentivals = []
 chrome_options = Options()
 chrome_options.add_argument("--headless")
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-#service = get_authenticated_service(0)
+
+""" os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# service = get_authenticated_service(0)
 CLIENT_SECRETS_FILE = "client_secret.json"
 SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 API_SERVICE_NAME = 'youtube'
@@ -59,13 +60,14 @@ if not credentials or not credentials.valid:
     with open('token.pickle', 'wb') as token:
         pickle.dump(credentials, token)
 
-service = build(API_SERVICE_NAME, API_VERSION, credentials=credentials)
+service = build(API_SERVICE_NAME, API_VERSION, credentials=credentials) """
+
 dataset, info = tfds.load('imdb_reviews/subwords8k',
                           with_info=True, as_supervised=True)
 encoder = info.features['text'].encoder
 # cloud path
-#jsonStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json'
-#weightStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5'
+# jsonStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json'
+# weightStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5'
 # local path
 jsonStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.json'
 weightStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.h5'
@@ -107,13 +109,17 @@ def vid():
     req = request.json
     url = req["url"]
     nos = req["nos"]
-    thisdict = {
+    lessthanpointtwo = {
+    }
+    morethanpointeight = {
     }
     findict = {
     }
+    sentivals = []
     count = 0
-    #video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
-    #comments = get_video_comments(service, part='snippet', videoId='IcJhmhA8tHE', textFormat='plainText', maxResults = 100)
+    totalsentiment = 0
+    # video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
+    # comments = get_video_comments(service, part='snippet', videoId='IcJhmhA8tHE', textFormat='plainText', maxResults = 100)
     with closing(Chrome(chrome_options=chrome_options)) as driver:
         wait = WebDriverWait(driver, 10)
         driver.get(url)
@@ -124,9 +130,8 @@ def vid():
             time.sleep(3)
 
         for comment in wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#comment #content-text"))):
-            #print(comment.text)
+            # print(comment.text)
             com = comment.text
-            count = count + 1
             com = clean(comment.text,
                         fix_unicode=True,               # fix various unicode errors
                         to_ascii=True,                  # transliterate to closest ASCII representation
@@ -148,23 +153,44 @@ def vid():
                         replace_with_currency_symbol="",
                         lang="en"                       # set to 'de' for German special handling
                         )
+            analysis =TextBlob(com)
+            pol = analysis.sentiment.polarity
             senti = sample_predict(com, pad=True)
             senti = senti.tolist()
             senti = senti[0][0]
-            if senti < 0.5 and senti > 0.001:
-              sentivals.append(senti)
-            thisdict[senti] = com
+            positive = 0
+            totalsentiment = totalsentiment + senti
+            """ if senti < 0.8 or pol != 0 and pol > 0:
+               count = count + 1
+               positive = positive + 1
+               sentivals.append(senti) """
+            if senti < 0.2 or pol != 0 and pol < 0:
+              lessthanpointtwo[senti] = com
+              count = count + 1
+            if senti > 0.8 or pol != 0 and pol > 0:
+              morethanpointeight[senti] = com
+              count = count + 1
+              positive = positive + 1
+
     positive = count - len(sentivals)            
     negative = len(sentivals)
     sentivals.sort()
-    for x in sentivals:
-      findict[thisdict[x]] = x
+    """ for x in sentivals:
+      findict[lessthanpointtwo[x]] = x """
     print(abs(positive/count)*100)
     print(abs(negative/count)*100)
-    findict["positive"] = abs(positive/count)*100
-    findict["negative"] = abs(negative/count)*100 
+    """ findict["positive"] = abs(positive/count)*100
+    findict["negative"] = abs(negative/count)*100  """
+    scoretotalsum = (totalsentiment/count)*100
+    scorebypointfive = abs(positive/count)*100
+    payload = {
+      "morethanpointeight": morethanpointeight,
+      "lessthanpointtwo": lessthanpointtwo,
+      "scoretotalsum": scoretotalsum,
+      "scorebypointfive": scorebypointfive
+    }
     print(findict)
-    return findict
+    return jsonify(payload)
 
 
 def pad_to_size(vec, size):
