@@ -61,9 +61,14 @@ def classifier():
     print(r)
     # Decoding results from TensorFlow Serving server
     pred = json.loads(r.content.decode('utf-8')) """
-    print(pred)
+    print(pred.tolist())
+    print(type(pred[0,0]+0))
+    pred = pred.tolist()
+    val = pred[0][0]
+    print(val)
+    print(type(val))
     # Returning JSON response to the frontend
-    return jsonify(pred)
+    return str(val)
 
 def pad_to_size(vec, size):
   zeros = [0] * (size - len(vec))
@@ -89,6 +94,6 @@ def sample_predict(sample_pred_text, pad):
   if pad:
     encoded_sample_pred_text = pad_to_size(encoded_sample_pred_text, 64)
   encoded_sample_pred_text = tf.cast(encoded_sample_pred_text, tf.float32)
-  predictions = model.predict(tf.expand_dims(encoded_sample_pred_text, 0), steps=None)
+  predictions = model.predict(tf.expand_dims(encoded_sample_pred_text, 0), steps=1)
 
   return (predictions)
