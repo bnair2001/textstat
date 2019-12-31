@@ -10,7 +10,6 @@ import requests
 import tensorflow_datasets as tfds
 import tensorflow as tf
 from flask import Flask, request, jsonify
-from pyvirtualdisplay import Display
 import time
 from selenium.webdriver import Chrome
 from cleantext import clean
@@ -21,16 +20,20 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from textblob import TextBlob
-from selenium import webdriver
-from flask_cors import CORS
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import urllib.request
+import urllib
+from urllib.request import urlopen
+from urllib.request import urlencode
+
+# from flask_cors import CORS
 
 app = Flask(__name__)
 
 
 # Uncomment this line if you are making a Cross domain request
-CORS(app)
-display = Display(visible=0, size=(800, 600))
-display.start()
+# CORS(app)
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
@@ -54,22 +57,20 @@ if not credentials or not credentials.valid:
         flow = InstalledAppFlow.from_client_secrets_file(
             CLIENT_SECRETS_FILE, SCOPES)
         credentials = flow.run_console()
-
     # Save the credentials for the next run
     with open('token.pickle', 'wb') as token:
         pickle.dump(credentials, token)
-
 service = build(API_SERVICE_NAME, API_VERSION, credentials=credentials) """
 
 dataset, info = tfds.load('imdb_reviews/subwords8k',
                           with_info=True, as_supervised=True)
 encoder = info.features['text'].encoder
 # cloud path
-jsonStr = '/home/bnair2001/commentstat/backend/serving/my_classifier/model.json'
-weightStr = '/home/bnair2001/commentstat/backend/serving/my_classifier/model.h5'
+# jsonStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json'
+# weightStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5'
 # local path
-#jsonStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.json'
-#weightStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.h5'
+jsonStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.json'
+weightStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.h5'
 
 json_file = open(jsonStr, 'r')
 loaded_nnet = json_file.read()
@@ -118,10 +119,10 @@ def vid():
     count = 0
     totalsentiment = 0
     positive = 0
+    text = ""
     # video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
     # comments = get_video_comments(service, part='snippet', videoId='IcJhmhA8tHE', textFormat='plainText', maxResults = 100)
     with closing(Chrome(chrome_options=chrome_options)) as driver:
-        driver = webdriver.Chrome()
         wait = WebDriverWait(driver, 10)
         driver.get(url)
 
@@ -155,6 +156,7 @@ def vid():
                         lang="en"                       # set to 'de' for German special handling
                         )
             analysis =TextBlob(com)
+            text = text + com
             pol = analysis.sentiment.polarity
             senti = sample_predict(com, pad=True)
             senti = senti.tolist()
@@ -187,11 +189,25 @@ def vid():
     findict["negative"] = abs(negative/count)*100  """
     scoretotalsum = (totalsentiment/count)*100
     scorebypointfive = abs(positive/count)*100
+    cloud = WordCloud().generate(text)
+    cloud.to_file('N.png')
+    f = open("N.png", "rb") # open our image file as read only in binary mode
+    image_data = f.read()
+    b64_image = base64.standard_b64encode(image_data)
+    client_id = "2cb3e1b4f5c5ea3" # put your client ID here
+    headers = {'Authorization': 'Client-ID ' + client_id} 
+    data = {'image': b64_image, 'title': 'test'} # create a dictionary.
+    request = urllib.Request(url="https://api.imgur.com/3/upload.json", data=urllib.urlencode(data),headers=headers)
+    response = urllib.urlopen(request).read()
+    parse = json.loads(response)
+    print (parse['data']['link'])
+    wcloud = parse['data']['link']
     payload = {
       "morethanpointeight": morethanpointeight,
       "lessthanpointtwo": lessthanpointtwo,
       "scoretotalsum": scoretotalsum,
-      "scorebypointfive": scorebypointfive
+      "scorebypointfive": scorebypointfive,
+      "wordcloud": wcloud
     }
     print(findict)
     return jsonify(payload)
