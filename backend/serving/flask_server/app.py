@@ -10,6 +10,7 @@ import requests
 import tensorflow_datasets as tfds
 import tensorflow as tf
 from flask import Flask, request, jsonify
+import google.oauth2.credentials
 import time
 from selenium.webdriver import Chrome
 from cleantext import clean
@@ -19,6 +20,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google_auth_oauthlib.flow import InstalledAppFlow
 from textblob import TextBlob
 
 # from flask_cors import CORS
@@ -51,11 +55,9 @@ if not credentials or not credentials.valid:
         flow = InstalledAppFlow.from_client_secrets_file(
             CLIENT_SECRETS_FILE, SCOPES)
         credentials = flow.run_console()
-
     # Save the credentials for the next run
     with open('token.pickle', 'wb') as token:
         pickle.dump(credentials, token)
-
 service = build(API_SERVICE_NAME, API_VERSION, credentials=credentials) """
 
 dataset, info = tfds.load('imdb_reviews/subwords8k',
