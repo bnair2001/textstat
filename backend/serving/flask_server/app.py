@@ -57,7 +57,7 @@ serve_model.load_weights(weightStr)
 serve_model.compile(optimizer=tf.keras.optimizers.Adam(
     1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
 model = serve_model
-Question_Words = ['what', 'where', 'when','how','why','did','do','does','have','has','am','is','are','can','could','may','would','will','should'
+Question_Words = ['what', 'where', 'when','how','why','did','do','does','have','has','can','could','may','would','will','should'
 "didn't","doesn't","haven't","isn't","aren't","can't","couldn't","wouldn't","won't","shouldn't",'?']
 # Testing URL
 @app.route('/', methods=['GET', 'POST'])
