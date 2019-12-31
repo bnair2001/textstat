@@ -22,18 +22,16 @@ from selenium.webdriver.common.keys import Keys
 from textblob import TextBlob
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-import urllib.request
-import urllib
 from urllib.request import urlopen
-from urllib.request import urlencode
+from urllib.parse import urlencode, quote_plus
 
-# from flask_cors import CORS
+from flask_cors import CORS
 
 app = Flask(__name__)
 
 
 # Uncomment this line if you are making a Cross domain request
-# CORS(app)
+CORS(app)
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
@@ -66,11 +64,11 @@ dataset, info = tfds.load('imdb_reviews/subwords8k',
                           with_info=True, as_supervised=True)
 encoder = info.features['text'].encoder
 # cloud path
-# jsonStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json'
-# weightStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5'
+jsonStr = '/home/bnair2001/commentstat/backend/serving/my_classifier/model.json'
+weightStr = '/home/bnair2001/commentstat/backend/serving/my_classifier/model.h5'
 # local path
-jsonStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.json'
-weightStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.h5'
+#jsonStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.json'
+#weightStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.h5'
 
 json_file = open(jsonStr, 'r')
 loaded_nnet = json_file.read()
@@ -90,7 +88,7 @@ def hello_world():
 
 @app.route('/sentiment/predict/', methods=['POST'])
 def classifier():
-    txt = request.json
+    txt = flask.request.json
     # print(request.json)
     sentence = txt["comment"]
     # print(sentence)
