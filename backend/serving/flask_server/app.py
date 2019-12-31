@@ -24,6 +24,12 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 from textblob import TextBlob
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import urllib.request
+import urllib
+from urllib.request import urlopen
+from urllib.request import urlencode
 
 # from flask_cors import CORS
 
@@ -117,6 +123,7 @@ def vid():
     count = 0
     totalsentiment = 0
     positive = 0
+    text = ""
     # video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
     # comments = get_video_comments(service, part='snippet', videoId='IcJhmhA8tHE', textFormat='plainText', maxResults = 100)
     with closing(Chrome(chrome_options=chrome_options)) as driver:
@@ -153,6 +160,7 @@ def vid():
                         lang="en"                       # set to 'de' for German special handling
                         )
             analysis =TextBlob(com)
+            text = text + com
             pol = analysis.sentiment.polarity
             senti = sample_predict(com, pad=True)
             senti = senti.tolist()
@@ -185,11 +193,25 @@ def vid():
     findict["negative"] = abs(negative/count)*100  """
     scoretotalsum = (totalsentiment/count)*100
     scorebypointfive = abs(positive/count)*100
+    cloud = WordCloud().generate(text)
+    cloud.to_file('N.png')
+    f = open("N.png", "rb") # open our image file as read only in binary mode
+    image_data = f.read()
+    b64_image = base64.standard_b64encode(image_data)
+    client_id = "2cb3e1b4f5c5ea3" # put your client ID here
+    headers = {'Authorization': 'Client-ID ' + client_id} 
+    data = {'image': b64_image, 'title': 'test'} # create a dictionary.
+    request = urllib.Request(url="https://api.imgur.com/3/upload.json", data=urllib.urlencode(data),headers=headers)
+    response = urllib.urlopen(request).read()
+    parse = json.loads(response)
+    print (parse['data']['link'])
+    wcloud = parse['data']['link']
     payload = {
       "morethanpointeight": morethanpointeight,
       "lessthanpointtwo": lessthanpointtwo,
       "scoretotalsum": scoretotalsum,
-      "scorebypointfive": scorebypointfive
+      "scorebypointfive": scorebypointfive,
+      "wordcloud": wcloud
     }
     print(findict)
     return jsonify(payload)
