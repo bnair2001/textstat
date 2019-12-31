@@ -88,7 +88,7 @@ def hello_world():
 
 @app.route('/sentiment/predict/', methods=['POST'])
 def classifier():
-    txt = flask.request.json
+    txt = request.json
     # print(request.json)
     sentence = txt["comment"]
     # print(sentence)
@@ -195,8 +195,8 @@ def vid():
     client_id = "2cb3e1b4f5c5ea3" # put your client ID here
     headers = {'Authorization': 'Client-ID ' + client_id} 
     data = {'image': b64_image, 'title': 'test'} # create a dictionary.
-    request = urllib.Request(url="https://api.imgur.com/3/upload.json", data=urllib.urlencode(data),headers=headers)
-    response = urllib.urlopen(request).read()
+    request1 = request(url="https://api.imgur.com/3/upload.json", data=urlencode(data),headers=headers)
+    response = urlopen(request1).read()
     parse = json.loads(response)
     print (parse['data']['link'])
     wcloud = parse['data']['link']
