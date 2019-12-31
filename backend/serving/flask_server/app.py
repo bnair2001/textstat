@@ -194,18 +194,14 @@ def vid():
     b64_image = base64.standard_b64encode(image_data)
     client_id = "2cb3e1b4f5c5ea3" # put your client ID here
     headers = {'Authorization': 'Client-ID ' + client_id} 
-    data = {'image': b64_image, 'title': 'test'} # create a dictionary.
-    request1 = requests.post(url="https://api.imgur.com/3/upload.json", data=urlencode(data),headers=headers)
-    response = urlopen(request1).read()
-    parse = json.loads(response)
-    print (parse['data']['link'])
-    wcloud = parse['data']['link']
+    
+    #wcloud = parse['data']['link']
     payload = {
       "morethanpointeight": morethanpointeight,
       "lessthanpointtwo": lessthanpointtwo,
       "scoretotalsum": scoretotalsum,
       "scorebypointfive": scorebypointfive,
-      "wordcloud": wcloud
+      "wordcloud": "linkcoming soon"
     }
     print(findict)
     return jsonify(payload)
