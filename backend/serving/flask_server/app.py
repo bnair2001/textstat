@@ -22,13 +22,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from textblob import TextBlob
 from selenium import webdriver
-# from flask_cors import CORS
+from flask_cors import CORS
 
 app = Flask(__name__)
 
 
 # Uncomment this line if you are making a Cross domain request
-# CORS(app)
+CORS(app)
 display = Display(visible=0, size=(800, 600))
 display.start()
 chrome_options = Options()
