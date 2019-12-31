@@ -206,8 +206,8 @@ def vid():
     data = json.loads(j1.text)['data']
     wcloud = data['link']
     payload = {
-      "morethanpointeight": morethanpointeight,
-      "lessthanpointtwo": lessthanpointtwo,
+      "positive": morethanpointeight,
+      "negative": lessthanpointtwo,
       "scoretotalsum": scoretotalsum,
       "scorebypointfive": scorebypointfive,
       "wordcloud": wcloud
