@@ -57,10 +57,114 @@ serve_model.load_weights(weightStr)
 serve_model.compile(optimizer=tf.keras.optimizers.Adam(
     1e-4), loss='categorical_crossentropy', metrics=['accuracy'])
 model = serve_model
+Question_Words = ['what', 'where', 'when','how','why','did','do','does','have','has','am','is','are','can','could','may','would','will','should'
+"didn't","doesn't","haven't","isn't","aren't","can't","couldn't","wouldn't","won't","shouldn't",'?']
 # Testing URL
 @app.route('/', methods=['GET', 'POST'])
 def hello_world():
     return 'Hello, World!'
+
+@app.route('/question/video/', methods=['POST'])
+def vidq():
+    req = request.json
+    url = req["url"]
+    nos = req["nos"]
+    questions = {
+    }
+    questioncount = 0
+    count = 0
+    with closing(Chrome(chrome_options=chrome_options)) as driver:
+        wait = WebDriverWait(driver, 10)
+        driver.get(url)
+
+        for item in range(nos):  # by increasing the highest range you can get more content
+            wait.until(EC.visibility_of_element_located(
+                (By.TAG_NAME, "body"))).send_keys(Keys.END)
+            time.sleep(3)
+
+        for comment in wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "#comment #content-text"))):
+            # print(comment.text)
+            com = comment.text
+            count = count + 1
+            com = clean(comment.text,
+                        fix_unicode=True,               # fix various unicode errors
+                        to_ascii=True,                  # transliterate to closest ASCII representation
+                        lower=True,                     # lowercase text
+                        # fully strip line breaks as opposed to only normalizing them
+                        no_line_breaks=True,
+                        no_urls=True,                  # replace all URLs with a special token
+                        no_emails=True,                # replace all email addresses with a special token
+                        no_phone_numbers=True,         # replace all phone numbers with a special token
+                        no_numbers=False,               # replace all numbers with a special token
+                        no_digits=False,                # replace all digits with a special token
+                        no_currency_symbols=False,      # replace all currency symbols with a special token
+                        no_punct=False,                 # fully remove punctuation
+                        replace_with_url="",
+                        replace_with_email="",
+                        replace_with_phone_number="",
+                        replace_with_number="",
+                        replace_with_digit="0",
+                        replace_with_currency_symbol="",
+                        lang="en"                       # set to 'de' for German special handling
+                        )
+            words = com.split()
+            for word in Question_Words:
+                if word in words:
+                    questions[word] = com
+                    questioncount = questioncount + 1
+    qpercent = abs((questioncount/count)*100)
+    payload = {
+        "questions": questions,
+        "percentageofquestions": qpercent
+    }                
+    return jsonify(payload)
+
+
+@app.route('/question/tweet/', methods=['POST'])
+def vidq():
+    req = request.json
+    user = req["user"]
+    nos = req["nos"]
+    questions = {
+    }
+    questioncount = 0
+    count = 0
+    list_of_tweets = query_tweets(user, nos)
+    for tweet in query_tweets(user, nos):
+        tw = tweet.text
+        count = count + 1
+        com = clean(tw,
+                    fix_unicode=True,               # fix various unicode errors
+                    to_ascii=True,                  # transliterate to closest ASCII representation
+                    lower=True,                     # lowercase text
+                    # fully strip line breaks as opposed to only normalizing them
+                    no_line_breaks=True,
+                    no_urls=True,                  # replace all URLs with a special token
+                    no_emails=True,                # replace all email addresses with a special token
+                    no_phone_numbers=True,         # replace all phone numbers with a special token
+                    no_numbers=False,               # replace all numbers with a special token
+                    no_digits=False,                # replace all digits with a special token
+                    no_currency_symbols=False,      # replace all currency symbols with a special token
+                    no_punct=False,                 # fully remove punctuation
+                    replace_with_url="",
+                    replace_with_email="",
+                    replace_with_phone_number="",
+                    replace_with_number="",
+                    replace_with_digit="0",
+                    replace_with_currency_symbol="",
+                    lang="en"                       # set to 'de' for German special handling
+                    )
+        words = com.split()
+        for word in Question_Words:
+            if word in words:
+                questions[word] = com
+                questioncount = questioncount + 1
+    qpercent = abs((questioncount/count)*100)
+    payload = {
+        "questions": questions,
+        "percentageofquestions": qpercent
+    }                
+    return jsonify(payload)
 
 
 @app.route('/sentiment/predict/', methods=['POST'])
