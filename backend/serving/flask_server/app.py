@@ -195,7 +195,7 @@ def vid():
     client_id = "2cb3e1b4f5c5ea3" # put your client ID here
     headers = {'Authorization': 'Client-ID ' + client_id} 
     data = {'image': b64_image, 'title': 'test'} # create a dictionary.
-    request1 = request(url="https://api.imgur.com/3/upload.json", data=urlencode(data),headers=headers)
+    request1 = requests.post(url="https://api.imgur.com/3/upload.json", data=urlencode(data),headers=headers)
     response = urlopen(request1).read()
     parse = json.loads(response)
     print (parse['data']['link'])
