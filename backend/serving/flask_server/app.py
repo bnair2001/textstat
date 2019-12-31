@@ -10,7 +10,6 @@ import requests
 import tensorflow_datasets as tfds
 import tensorflow as tf
 from flask import Flask, request, jsonify
-import google.oauth2.credentials
 import time
 from selenium.webdriver import Chrome
 from cleantext import clean
@@ -20,9 +19,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from google_auth_oauthlib.flow import InstalledAppFlow
 from textblob import TextBlob
 
 # from flask_cors import CORS
