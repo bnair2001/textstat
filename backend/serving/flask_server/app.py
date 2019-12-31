@@ -24,6 +24,7 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from urllib.request import urlopen
 from urllib.parse import urlencode, quote_plus
+from twitterscraper import query_tweets
 
 from flask_cors import CORS
 
@@ -35,30 +36,6 @@ CORS(app)
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
-""" os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-# service = get_authenticated_service(0)
-CLIENT_SECRETS_FILE = "client_secret.json"
-SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
-API_SERVICE_NAME = 'youtube'
-API_VERSION = 'v3'
-# auth
-credentials = None
-if os.path.exists('token.pickle'):
-    with open('token.pickle', 'rb') as token:
-        credentials = pickle.load(token)
-#  Check if the credentials are invalid or do not exist
-if not credentials or not credentials.valid:
-    # Check if the credentials have expired
-    if credentials and credentials.expired and credentials.refresh_token:
-        credentials.refresh(request())
-    else:
-        flow = InstalledAppFlow.from_client_secrets_file(
-            CLIENT_SECRETS_FILE, SCOPES)
-        credentials = flow.run_console()
-    # Save the credentials for the next run
-    with open('token.pickle', 'wb') as token:
-        pickle.dump(credentials, token)
-service = build(API_SERVICE_NAME, API_VERSION, credentials=credentials) """
 
 dataset, info = tfds.load('imdb_reviews/subwords8k',
                           with_info=True, as_supervised=True)
@@ -153,7 +130,7 @@ def vid():
                         replace_with_currency_symbol="",
                         lang="en"                       # set to 'de' for German special handling
                         )
-            analysis =TextBlob(com)
+            analysis = TextBlob(com)
             text = text + com
             pol = analysis.sentiment.polarity
             senti = sample_predict(com, pad=True)
@@ -164,41 +141,41 @@ def vid():
                positive = positive + 1
                sentivals.append(senti) """
             if pol != 0 and pol < 0:
-              lessthanpointtwo[senti] = com
-              count = count + 1
-              totalsentiment = totalsentiment + senti
-              #positive = positive - 1
+                lessthanpointtwo[senti] = com
+                count = count + 1
+                totalsentiment = totalsentiment + senti
+                #positive = positive - 1
             elif pol != 0 and pol > 0:
-              morethanpointeight[senti] = com
-              count = count + 1
-              positive = positive + 1
-              totalsentiment = totalsentiment + senti
+                morethanpointeight[senti] = com
+                count = count + 1
+                positive = positive + 1
+                totalsentiment = totalsentiment + senti
             else:
-              abcdef = 0
+                abcdef = 0
 
-    #positive = count - positive           
+    #positive = count - positive
     negative = len(sentivals)
     sentivals.sort()
     """ for x in sentivals:
       findict[lessthanpointtwo[x]] = x """
-    print(abs(positive/count)*100)
-    print(abs(negative/count)*100)
+    #print(abs(positive/count)*100)
+    #print(abs(negative/count)*100)
     """ findict["positive"] = abs(positive/count)*100
     findict["negative"] = abs(negative/count)*100  """
     scoretotalsum = (totalsentiment/count)*100
     scorebypointfive = abs(positive/count)*100
     cloud = WordCloud().generate(text)
     cloud.to_file('N.png')
-    f = open("N.png", "rb") # open our image file as read only in binary mode
+    f = open("N.png", "rb")  # open our image file as read only in binary mode
     image_data = f.read()
     b64_image = base64.standard_b64encode(image_data)
-    client_id = "2cb3e1b4f5c5ea3" # put your client ID here
-    headers = {'Authorization': 'Client-ID ' + client_id} 
+    client_id = "2cb3e1b4f5c5ea3"  # put your client ID here
+    headers = {'Authorization': 'Client-ID ' + client_id}
     url = "https://api.imgur.com/3/image"
     j1 = requests.post(
-        url, 
-        headers = headers,
-        data = {
+        url,
+        headers=headers,
+        data={
             'image': b64_image,
             'type': 'base64'
         }
@@ -206,13 +183,98 @@ def vid():
     data = json.loads(j1.text)['data']
     wcloud = data['link']
     payload = {
-      "positive": morethanpointeight,
-      "negative": lessthanpointtwo,
-      "scoretotalsum": scoretotalsum,
-      "scorebypointfive": scorebypointfive,
-      "wordcloud": wcloud
+        "positive": morethanpointeight,
+        "negative": lessthanpointtwo,
+        "scoretotalsum": scoretotalsum,
+        "scorebypointfive": scorebypointfive,
+        "wordcloud": wcloud
     }
     print(findict)
+    return jsonify(payload)
+
+
+@app.route('/tweet/predict/', methods=['POST'])
+def tweet():
+    req = request.json
+    user = req["user"]
+    nos = req["nos"]
+    positivetweets = {
+    }
+    negativetweets = {       
+    }
+    count = 0
+    totalsenticount = 0
+    positive = 0
+    list_of_tweets = query_tweets(user, nos)
+    wctext = ""
+    for tweet in query_tweets(user, nos):
+        tw = tweet.text
+        tw = clean(tweet.text,
+                        fix_unicode=True,               # fix various unicode errors
+                        to_ascii=True,                  # transliterate to closest ASCII representation
+                        lower=True,                     # lowercase text
+                        # fully strip line breaks as opposed to only normalizing them
+                        no_line_breaks=True,
+                        no_urls=True,                  # replace all URLs with a special token
+                        no_emails=True,                # replace all email addresses with a special token
+                        no_phone_numbers=True,         # replace all phone numbers with a special token
+                        no_numbers=False,               # replace all numbers with a special token
+                        no_digits=False,                # replace all digits with a special token
+                        no_currency_symbols=False,      # replace all currency symbols with a special token
+                        no_punct=False,                 # fully remove punctuation
+                        replace_with_url="",
+                        replace_with_email="",
+                        replace_with_phone_number="",
+                        replace_with_number="",
+                        replace_with_digit="0",
+                        replace_with_currency_symbol="",
+                        lang="en"                       # set to 'de' for German special handling
+                        )
+
+        blobscore = TextBlob(tw)
+        wctext = wctext + tw
+        polar = blobscore.sentiment.polarity
+        sentiscore = sample_predict(tw, pad=True)
+        sentiscore = sentiscore.tolist()
+        sentiscore = sentiscore[0][0]
+        if polar !=0 and polar < 0:
+            negativetweets[sentiscore] = tw
+            count = count + 1
+            totalsenticount = totalsenticount + sentiscore
+        elif polar !=0 and polar > 0:
+            positivetweets[sentiscore] = tw
+            count = count + 1
+            positive = positive + 1
+            totalsenticount = totalsenticount + sentiscore
+        else:
+            random = 0
+    scoretotalsum = (totalsenticount/count)*100
+    scorebypointfive = abs(positive/count)*100
+    cloud = WordCloud().generate(wctext)
+    cloud.to_file('T.png')
+    f = open("T.png", "rb")
+    image_data = f.read()
+    b64_image = base64.standard_b64encode(image_data)
+    client_id = "2cb3e1b4f5c5ea3"  # put your client ID here
+    headers = {'Authorization': 'Client-ID ' + client_id}
+    url = "https://api.imgur.com/3/image"
+    j1 = requests.post(
+        url,
+        headers=headers,
+        data={
+            'image': b64_image,
+            'type': 'base64'
+        }
+    )
+    data = json.loads(j1.text)['data']
+    wcloud = data['link']
+    payload = {
+        "positive": positivetweets,
+        "negative": negativetweets,
+        "scoretotalsum": scoretotalsum,
+        "scorebypointfive": scorebypointfive,
+        "wordcloud": wcloud
+    }
     return jsonify(payload)
 
 
