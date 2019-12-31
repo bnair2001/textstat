@@ -10,7 +10,7 @@ import requests
 import tensorflow_datasets as tfds
 import tensorflow as tf
 from flask import Flask, request, jsonify
-import google.oauth2.credentials
+from pyvirtualdisplay import Display
 import time
 from selenium.webdriver import Chrome
 from cleantext import clean
@@ -20,11 +20,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from google_auth_oauthlib.flow import InstalledAppFlow
 from textblob import TextBlob
-
+from selenium import webdriver
 # from flask_cors import CORS
 
 app = Flask(__name__)
@@ -32,6 +29,8 @@ app = Flask(__name__)
 
 # Uncomment this line if you are making a Cross domain request
 # CORS(app)
+display = Display(visible=0, size=(800, 600))
+display.start()
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
@@ -66,11 +65,11 @@ dataset, info = tfds.load('imdb_reviews/subwords8k',
                           with_info=True, as_supervised=True)
 encoder = info.features['text'].encoder
 # cloud path
-# jsonStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.json'
-# weightStr = '/home/bharathrajeevnair/commentstat/backend/serving/my_classifier/model.h5'
+jsonStr = '/home/bnair2001/commentstat/backend/serving/my_classifier/model.json'
+weightStr = '/home/bnair2001/commentstat/backend/serving/my_classifier/model.h5'
 # local path
-jsonStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.json'
-weightStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.h5'
+#jsonStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.json'
+#weightStr = '/Users/bharathnair/Documents/GitHub/commentstat/backend/serving/my_classifier/model.h5'
 
 json_file = open(jsonStr, 'r')
 loaded_nnet = json_file.read()
@@ -122,6 +121,7 @@ def vid():
     # video_comment_threads = get_comment_threads(service, 'kMtN9KJHn5Y')
     # comments = get_video_comments(service, part='snippet', videoId='IcJhmhA8tHE', textFormat='plainText', maxResults = 100)
     with closing(Chrome(chrome_options=chrome_options)) as driver:
+        driver = webdriver.Chrome()
         wait = WebDriverWait(driver, 10)
         driver.get(url)
 
