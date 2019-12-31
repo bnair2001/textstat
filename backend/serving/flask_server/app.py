@@ -121,7 +121,7 @@ def vidq():
 
 
 @app.route('/question/tweet/', methods=['POST'])
-def vidq():
+def tweetq():
     req = request.json
     user = req["user"]
     nos = req["nos"]
