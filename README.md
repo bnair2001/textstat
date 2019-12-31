@@ -1,4 +1,4 @@
-# Commentstat
+# TextStat
 ## Inspiration
 Comments on Youtube videos hold a lot of insight and feedback valuable to the creator but spam spoils the insights. Text response and feedback holds a lot of value but it is hard to comprehend due to its size, but if we can condense it down to numbers and summarize it, it can be made useful
 ## What it does
